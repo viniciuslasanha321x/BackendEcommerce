@@ -35,3 +35,21 @@ export const validate = (req: Request, res: Response, next: NextFunction) => {
     errors: extractedErrors,
   });
 };
+
+export const changePasswordValidation = () => [
+  body('oldPassword')
+    .isLength({ min: 6 })
+    .withMessage('Old Password must be at least 6 chars long')
+    .trim()
+    .escape(),
+  body('newPassword')
+    .isLength({ min: 6 })
+    .trim()
+    .escape()
+    .withMessage('New Password must be at least 6 chars long'),
+  body('confirmNewPassword')
+    .isLength({ min: 6 })
+    .trim()
+    .escape()
+    .withMessage('Confirm New Password must be at least 6 chars long'),
+];

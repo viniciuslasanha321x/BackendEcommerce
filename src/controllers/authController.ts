@@ -68,12 +68,38 @@ export const signUp = async (
       return res.status(401).json({ message: info.message });
     }
 
-    console.log('To aqui');
-
     sendResponseToken({ user, res, statusCode: 201 });
   })(req, res, next);
 };
 
 export const getMe = async (req:Request, res:Response) => {
   res.status(200).json({ data: { user: req.user } });
+};
+
+export const changePassword = async (req:Request, res:Response) => {
+  try {
+    const user = req.user as UserType;
+    const { oldPassword, newPassword, confirmNewPassword } = req.body;
+
+    if (newPassword !== confirmNewPassword) {
+      return res.status(402).json({
+        message: 'New Password and Confirm New Password does not match',
+      });
+    }
+
+    const foundUser = await User.findById(user._id).select('+password');
+
+    if (!foundUser) return res.status(404).json({ message: 'User not found' });
+
+    const isPasswordCorrect = await foundUser.matchesPassword(oldPassword);
+
+    if (!isPasswordCorrect) return res.status(401).json({ message: 'Old password is incorrect' });
+
+    foundUser.password = newPassword;
+    await foundUser.save();
+
+    sendResponseToken({ user: foundUser, res, statusCode: 200 });
+  } catch (error) {
+    res.status(500).json({ message: 'Error in updating password.' });
+  }
 };
